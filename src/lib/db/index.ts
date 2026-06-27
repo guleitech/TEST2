@@ -19,7 +19,6 @@ export interface DatabaseResult {
     rows_written: number;
   };
 }
-
 // 获取 D1 数据库实例
 function getDB(): D1Database | undefined {
   // Cloudflare Pages 运行环境
@@ -32,35 +31,27 @@ function getDB(): D1Database | undefined {
   // 本地开发环境
   return process.env.DB as unknown as D1Database | undefined;
 }
+
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDB();
+  // 增加空值判断，数据库不存在直接返回 null
+  if (!db) return null;
+
   const result = await db.prepare(
     'SELECT * FROM users WHERE email = ?'
   ).bind(email).first<User>();
-  
   return result || null;
 }
 
-// 通过用户名查找用户
 export async function findUserByUsername(username: string): Promise<User | null> {
   const db = getDB();
+  if (!db) return null;
+
   const result = await db.prepare(
     'SELECT * FROM users WHERE username = ?'
   ).bind(username).first<User>();
-  
   return result || null;
 }
-
-// 通过 ID 查找用户
-export async function findUserById(id: number): Promise<User | null> {
-  const db = getDB();
-  const result = await db.prepare(
-    'SELECT * FROM users WHERE id = ?'
-  ).bind(id).first<User>();
-  
-  return result || null;
-}
-
 // 创建新用户
 export async function createUser(
   username: string,
