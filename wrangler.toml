@@ -7,12 +7,6 @@ compatibility_date = "2024-01-01"
 # Pages 项目配置
 pages_build_output_dir = ".next"
 
-# D1 数据库绑定配置
-[[d1_databases]]
-binding = "DB"  # 绑定别名，在代码中通过 env.DB 访问
-database_name = "user_auth"  # 数据库名称
-database_id = "a7f5d69f-0c11-4a85-89e3-00dde566ea93"  # 请替换为实际的数据库 ID
-
 # 环境变量配置（可选，也可以在 Cloudflare Dashboard 中配置）
 [vars]
 # 注意事项：
