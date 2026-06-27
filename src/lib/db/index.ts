@@ -21,48 +21,17 @@ export interface DatabaseResult {
 }
 
 // 获取 D1 数据库实例
-function getDB(): D1Database {
-  // 在 Cloudflare Workers/Pages 环境中，DB 绑定通过 env.DB 访问
-  
-  // 方式 1: 通过 getRequestContext（推荐方式，用于 Next.js on Cloudflare）
-  try {
-    // 动态导入 @cloudflare/next-on-pages 的 getRequestContext
-    // 这是 Cloudflare Pages Functions 中访问环境变量的标准方式
-    const { getRequestContext } = require('@cloudflare/next-on-pages');
-    const ctx = getRequestContext();
-    if (ctx?.env?.DB) {
-      return ctx.env.DB;
-    }
-  } catch {
-    // 如果不在 Cloudflare 环境中，继续尝试其他方式
-  }
-  
-  // 方式 2: 通过全局 env 对象（Cloudflare Workers）
+function getDB(): D1Database | undefined {
+  // Cloudflare Pages 运行环境
   if (typeof globalThis !== 'undefined' && 'env' in globalThis) {
     const globalEnv = (globalThis as unknown as { env: { DB: D1Database } }).env;
     if (globalEnv?.DB) {
       return globalEnv.DB;
     }
   }
-  
-  // 方式 3: 通过环境变量（用于本地开发测试）
-  // 注意：这种方式仅用于测试，生产环境应该通过 Cloudflare 绑定
-  if (process.env.DB) {
-    return process.env.DB as unknown as D1Database;
-  }
-  
-  // 如果数据库未配置，提供清晰的错误信息
-  throw new Error(
-    '数据库未配置：请确保已正确配置 Cloudflare D1 数据库。\n' +
-    '配置步骤：\n' +
-    '1. 在 Cloudflare Dashboard 创建 D1 数据库\n' +
-    '2. 在 wrangler.toml 中添加 D1 绑定配置\n' +
-    '3. 确保 binding 名称为 "DB"\n' +
-    '4. 运行 schema.sql 创建数据表'
-  );
+  // 本地开发环境
+  return process.env.DB as unknown as D1Database | undefined;
 }
-
-// 通过邮箱查找用户
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDB();
   const result = await db.prepare(
