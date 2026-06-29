@@ -1,5 +1,4 @@
 // Cloudflare D1 数据库操作工具
-
 export interface User {
   id: number;
   username: string;
@@ -19,6 +18,7 @@ export interface DatabaseResult {
     rows_written: number;
   };
 }
+
 // 获取 D1 数据库实例
 function getDB(): D1Database | undefined {
   // Cloudflare Pages 运行环境
@@ -34,7 +34,6 @@ function getDB(): D1Database | undefined {
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDB();
-  // 增加空值判断，数据库不存在直接返回 null
   if (!db) return null;
 
   const result = await db.prepare(
@@ -52,6 +51,7 @@ export async function findUserByUsername(username: string): Promise<User | null>
   ).bind(username).first<User>();
   return result || null;
 }
+
 // 创建新用户
 export async function createUser(
   username: string,
@@ -59,6 +59,9 @@ export async function createUser(
   hashedPassword: string
 ): Promise<number> {
   const db = getDB();
+  // 新增判空，无DB直接抛出异常
+  if (!db) throw new Error("D1 DB 实例未初始化，无法创建用户");
+
   const result = await db.prepare(
     'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
   ).bind(username, email, hashedPassword).run();
@@ -76,6 +79,9 @@ export async function updateUser(
   updates: Partial<Pick<User, 'username' | 'email' | 'password'>>
 ): Promise<boolean> {
   const db = getDB();
+  // 新增判空
+  if (!db) throw new Error("D1 DB 实例未初始化，无法更新用户");
+
   const fields: string[] = [];
   const values: string[] = [];
   
@@ -98,7 +104,6 @@ export async function updateUser(
   
   fields.push('updated_at = datetime("now")');
   values.push(String(id));
-  
   const query = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
   const result = await db.prepare(query).bind(...values).run();
   
