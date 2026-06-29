@@ -1,4 +1,5 @@
 // Cloudflare D1 数据库操作工具
+
 export interface User {
   id: number;
   username: string;
@@ -34,6 +35,7 @@ function getDB(): D1Database | undefined {
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDB();
+  // 空值提前拦截，TS 确定下方 db 不为 undefined
   if (!db) return null;
 
   const result = await db.prepare(
@@ -59,8 +61,7 @@ export async function createUser(
   hashedPassword: string
 ): Promise<number> {
   const db = getDB();
-  // 新增判空，无DB直接抛出异常
-  if (!db) throw new Error("D1 DB 实例未初始化，无法创建用户");
+  if (!db) throw new Error("D1 DB 实例未初始化");
 
   const result = await db.prepare(
     'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
@@ -79,8 +80,7 @@ export async function updateUser(
   updates: Partial<Pick<User, 'username' | 'email' | 'password'>>
 ): Promise<boolean> {
   const db = getDB();
-  // 新增判空
-  if (!db) throw new Error("D1 DB 实例未初始化，无法更新用户");
+  if (!db) throw new Error("D1 DB 实例未初始化");
 
   const fields: string[] = [];
   const values: string[] = [];
